@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.0.2 - 2026-08-09
+
+Directional motion and visual consistency update.
+
+- Forced the Latency-style page transition pipeline to use the navigation direction for both the asymmetric transition and versioned page-settle motion.
+- Removed hover-dependent background, border, shadow, and scale changes so the app has the same visual appearance with or without a pointer over a control or panel.
+- Kept the duplicated Latency MotionSystem, VersionedNonlinearMotion, runtime optimization profile, native shell, accent palette, language layer, and Settings topology in sync.
+- Updated the application and release defaults to version 1.0.2 (build 3).
+
 ## v1.0.1 - 2026-08-09
 
 UI and motion refresh.

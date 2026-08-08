@@ -187,7 +187,7 @@ struct SettingsPage: View {
     private var diagnosticsRow: some View {
         VStack(alignment: .leading, spacing: 8) {
             SidebarStatusRow(title: L10n.text("Application version", language: language)) {
-                Text("1.0.1").monospacedDigit()
+                Text("1.0.2").monospacedDigit()
             }
             SidebarStatusRow(title: L10n.text("Universal 2", language: language)) {
                 Text("arm64 + x86_64")

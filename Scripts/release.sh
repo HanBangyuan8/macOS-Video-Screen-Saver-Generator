@@ -2,8 +2,8 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-VERSION="${VIDEO_SCREEN_SAVER_VERSION:-1.0.1}"
-BUILD_VERSION="${VIDEO_SCREEN_SAVER_BUILD_VERSION:-2}"
+VERSION="${VIDEO_SCREEN_SAVER_VERSION:-1.0.2}"
+BUILD_VERSION="${VIDEO_SCREEN_SAVER_BUILD_VERSION:-3}"
 DIST_DIR="$ROOT_DIR/dist"
 RELEASE_STAGE_DIR="$(mktemp -d "${TMPDIR:-/tmp}/video-screen-saver-generator-release.XXXXXX")"
 BUILD_OUTPUT="$RELEASE_STAGE_DIR/verified-build"
