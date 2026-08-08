@@ -1,8 +1,8 @@
 # Video Screen Saver Generator
 
 ![macOS](https://img.shields.io/badge/macOS-13%2B-blue?style=flat)
+![Xcode](https://img.shields.io/badge/Xcode-15%2B-147EFB?style=flat)
 ![Swift](https://img.shields.io/badge/Swift-5.9%2B-orange?style=flat)
-![Objective-C](https://img.shields.io/badge/Objective--C-ScreenSaver-43853D?style=flat)
 ![GitHub release](https://img.shields.io/github/v/release/HanBangyuan8/macOS-Video-Screen-Saver-Generator?style=flat)
 ![GitHub Downloads](https://img.shields.io/github/downloads/HanBangyuan8/macOS-Video-Screen-Saver-Generator/total?style=flat)
 ![GitHub Repo stars](https://img.shields.io/github/stars/HanBangyuan8/macOS-Video-Screen-Saver-Generator?style=flat)
