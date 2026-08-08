@@ -39,6 +39,32 @@ clean_release_bundle_metadata() {
     done < <(find "$bundle_path" -print0)
 }
 
+verify_signature_after_cleanup() {
+    local bundle_path="$1"
+    local verify_kind="${2:-deep}"
+    local attempt
+
+    for attempt in 1 2 3 4 5; do
+        clean_release_bundle_metadata "$bundle_path"
+        if [[ "$verify_kind" == "deep" ]]; then
+            if codesign --verify --deep --strict "$bundle_path" >/dev/null 2>&1; then
+                return 0
+            fi
+        elif codesign --verify --strict "$bundle_path" >/dev/null 2>&1; then
+            return 0
+        fi
+        sleep 1
+    done
+
+    echo "Signature verification failed after metadata cleanup retries: $bundle_path" >&2
+    clean_release_bundle_metadata "$bundle_path"
+    if [[ "$verify_kind" == "deep" ]]; then
+        codesign --verify --deep --strict "$bundle_path"
+    else
+        codesign --verify --strict "$bundle_path"
+    fi
+}
+
 if [[ "$(uname -s)" != "Darwin" ]]; then
     echo "Release packaging requires macOS." >&2
     exit 1
@@ -70,10 +96,9 @@ ZIP_PATH="$(printf '%s\n' "$PACKAGE_OUTPUT" | sed -n '1p')"
 DMG_PATH="$(printf '%s\n' "$PACKAGE_OUTPUT" | sed -n '2p')"
 
 echo "== Verify architecture and signatures =="
-clean_release_bundle_metadata "$APP_PATH"
 "$ROOT_DIR/Scripts/check-architecture.sh" "$APP_PATH"
-codesign --verify --deep --strict "$APP_PATH"
-codesign --verify --strict "$APP_PATH/Contents/Resources/VideoScreenSaver.saver"
+verify_signature_after_cleanup "$APP_PATH" deep
+verify_signature_after_cleanup "$APP_PATH/Contents/Resources/VideoScreenSaver.saver" strict
 
 echo "== Verify ZIP extraction =="
 ZIP_CHECK_DIR="$RELEASE_STAGE_DIR/zip-check"
