@@ -16,6 +16,7 @@ Video Screen Saver Generator is a native macOS utility that turns a local video 
 ## Features
 
 - Native SwiftUI macOS interface with Create and Settings pages.
+- Native macOS top bar and sidebar with English, Simplified Chinese, and Traditional Chinese language switching.
 - Choose a movie with the native file picker or drag it onto the preview surface.
 - Looping in-app preview with immediate mute control and graceful metadata loading.
 - Fill or Fit display mode, configurable screen saver name, and Unicode-safe bundle identifiers.
@@ -25,6 +26,7 @@ Video Screen Saver Generator is a native macOS utility that turns a local video 
 - Generated bundles are xattr-cleaned and ad-hoc signed without modifying the original source video.
 - Universal 2 (`arm64` + `x86_64`) app and screen saver.
 - Appearance settings for accent color and Enhanced / Reduced / Off motion, respecting Reduce Motion.
+- Latency Graph-style 16-color accent selection, vertical page switching, startup/component reveals, and runtime-aware motion optimization.
 
 The screen saver remains a conservative legacy `ScreenSaverView` bundle implemented in Objective-C with `AVQueuePlayer`, `AVPlayerLooper`, and `AVPlayerLayer`. It preserves the dedicated `legacyScreenSaver` lifecycle workaround and never exits the app, System Settings preview, or smoke-test host.
 
@@ -47,8 +49,8 @@ Run the complete three-pass validation build:
 The default output is `~/Desktop/Video Screen Saver Generator Build/`. For CI or release automation, avoid opening Finder and the interactive pause:
 
 ```sh
-VIDEO_SCREEN_SAVER_VERSION=1.0.0 \
-VIDEO_SCREEN_SAVER_BUILD_VERSION=1 \
+VIDEO_SCREEN_SAVER_VERSION=1.0.1 \
+VIDEO_SCREEN_SAVER_BUILD_VERSION=2 \
 VIDEO_SAVER_BUILD_OUTPUT=/tmp/video-screen-saver-generator-build \
 ./build.command --no-open --non-interactive
 ```

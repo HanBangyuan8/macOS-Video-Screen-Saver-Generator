@@ -17,6 +17,14 @@ final class SaverWorkflowModel: ObservableObject {
     @Published private(set) var errorMessage: String?
     @Published private(set) var technicalDetails: String?
 
+    init() {
+        let defaults = UserDefaults.standard
+        contentMode = SaverContentMode(
+            rawValue: defaults.string(forKey: "defaultContentMode") ?? SaverContentMode.fill.rawValue
+        ) ?? .fill
+        muted = defaults.object(forKey: "defaultMuted") as? Bool ?? true
+    }
+
     func selectVideo(_ url: URL) {
         guard url.isFileURL, FileManager.default.fileExists(atPath: url.path) else {
             fail(summary: "The selected video could not be read.", details: "The URL does not point to an existing local file.")
@@ -120,20 +128,30 @@ struct CreateSaverView: View {
     @ObservedObject var workflow: SaverWorkflowModel
     let accentColor: Color
     let motionIntensity: MotionIntensity
+    let language: AppLanguage
+    let navigationDirection: PageNavigationDirection
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var isDropTargeted = false
+
+    private var motionProfile: VersionedMotionProfile {
+        VersionedMotionProfile(runtimeProfile: .current, intensity: motionIntensity)
+    }
+
+    private func t(_ key: String) -> String {
+        L10n.text(key, language: language)
+    }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 PageHeader(
-                    title: "Create",
-                    subtitle: "Turn a local video into a native macOS screen saver.",
+                    title: t("Create"),
+                    subtitle: t("Turn a local video into a native macOS screen saver."),
                     systemImage: "play.rectangle.fill",
                     accentColor: accentColor
                 )
-                .softAppear()
+                .versionedComponentAppear(profile: motionProfile, pageID: "create-header", direction: navigationDirection)
 
                 ViewThatFits(in: .horizontal) {
                     HStack(alignment: .top, spacing: 18) {
@@ -148,7 +166,7 @@ struct CreateSaverView: View {
                         settingsPanel
                     }
                 }
-                .softAppear(delay: 0.04)
+                .versionedComponentAppear(profile: motionProfile, pageID: "create-panels", direction: navigationDirection)
             }
             .padding(24)
         }
@@ -167,14 +185,14 @@ struct CreateSaverView: View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(alignment: .firstTextBaseline) {
                 VStack(alignment: .leading, spacing: 3) {
-                    Text("Video preview")
+                    Text(t("Video preview"))
                         .font(.headline)
-                    Text("Drop a file anywhere on the preview surface.")
+                    Text(t("Drop a file anywhere on the preview surface."))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
                 Spacer()
-                Button(workflow.selectedVideo == nil ? "Choose Video…" : "Replace…", action: chooseVideo)
+                Button(workflow.selectedVideo == nil ? t("Choose Video…") : t("Replace…"), action: chooseVideo)
                     .buttonStyle(.bordered)
                     .controlSize(.small)
                     .disabled(workflow.isBusy)
@@ -186,6 +204,7 @@ struct CreateSaverView: View {
                 selectedVideo: workflow.selectedVideo,
                 isDropTargeted: isDropTargeted,
                 accentColor: accentColor,
+                language: language,
                 chooseVideo: chooseVideo
             )
             .dropDestination(for: URL.self) { urls, _ in
@@ -208,7 +227,7 @@ struct CreateSaverView: View {
                 }
                 .font(.callout)
             } else {
-                Text("No video selected")
+                Text(t("No video selected"))
                     .font(.callout)
                     .foregroundStyle(.secondary)
             }
@@ -223,10 +242,10 @@ struct CreateSaverView: View {
 
     private func metadataGrid(_ metadata: VideoMetadata) -> some View {
         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], alignment: .leading, spacing: 10) {
-            metadataItem("Container", value: metadata.container, systemImage: "doc")
-            metadataItem("Duration", value: metadata.duration, systemImage: "clock")
-            metadataItem("Dimensions", value: metadata.dimensions, systemImage: "rectangle")
-            metadataItem("File size", value: metadata.fileSize, systemImage: "internaldrive")
+            metadataItem(t("Container"), value: metadata.container, systemImage: "doc")
+            metadataItem(t("Duration"), value: metadata.duration, systemImage: "clock")
+            metadataItem(t("Dimensions"), value: metadata.dimensions, systemImage: "rectangle")
+            metadataItem(t("File size"), value: metadata.fileSize, systemImage: "internaldrive")
         }
         .padding(12)
         .background(Color.secondary.opacity(0.07), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
@@ -250,11 +269,11 @@ struct CreateSaverView: View {
 
     private var settingsPanel: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Label("Screen saver settings", systemImage: "slider.horizontal.3")
+            Label(t("Screen saver settings"), systemImage: "slider.horizontal.3")
                 .font(.headline)
 
             VStack(alignment: .leading, spacing: 7) {
-                Text("Display name")
+                Text(t("Display name"))
                     .font(.subheadline.weight(.medium))
                 TextField("My Video Screen Saver", text: $workflow.saverName)
                     .textFieldStyle(.roundedBorder)
@@ -262,28 +281,28 @@ struct CreateSaverView: View {
             }
 
             VStack(alignment: .leading, spacing: 8) {
-                Text("Content mode")
+                Text(t("Content mode"))
                     .font(.subheadline.weight(.medium))
-                Picker("Content mode", selection: $workflow.contentMode) {
+                Picker(t("Content mode"), selection: $workflow.contentMode) {
                     ForEach(SaverContentMode.allCases) { mode in
-                        Text(mode.title).tag(mode)
+                        Text(mode.localizedTitle(for: language)).tag(mode)
                     }
                 }
                 .labelsHidden()
                 .pickerStyle(.segmented)
                 .disabled(workflow.isBusy)
-                Text(workflow.contentMode.explanation)
+                Text(workflow.contentMode.localizedExplanation(for: language))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
 
-            Toggle("Mute screen saver audio", isOn: $workflow.muted)
+            Toggle(t("Mute screen saver audio"), isOn: $workflow.muted)
                 .disabled(workflow.isBusy)
 
             Divider()
 
             Button(action: exportSaver) {
-                Label("Export .saver…", systemImage: "square.and.arrow.up")
+                Label(t("Export .saver…"), systemImage: "square.and.arrow.up")
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
@@ -291,7 +310,7 @@ struct CreateSaverView: View {
             .disabled(workflow.selectedVideo == nil || workflow.isBusy)
 
             Button(action: installSaver) {
-                Label("Generate and Install", systemImage: "arrow.down.app")
+                Label(t("Generate and Install"), systemImage: "arrow.down.app")
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.bordered)
@@ -302,13 +321,13 @@ struct CreateSaverView: View {
                 HStack(spacing: 9) {
                     ProgressView()
                         .controlSize(.small)
-                    Text("Copying video and signing…")
+                    Text(t("Copying video and signing…"))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
                 .transition(.opacity)
             } else {
-                Text(workflow.statusMessage)
+                Text(localizedStatusMessage)
                     .font(.caption)
                     .foregroundStyle(workflow.errorMessage == nil ? Color.secondary : Color.orange)
                     .fixedSize(horizontal: false, vertical: true)
@@ -330,7 +349,7 @@ struct CreateSaverView: View {
 
     private func successCard(_ url: URL) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            Label("Ready", systemImage: "checkmark.circle.fill")
+            Label(t("Ready"), systemImage: "checkmark.circle.fill")
                 .foregroundStyle(.green)
                 .font(.subheadline.weight(.semibold))
             Text(url.path)
@@ -339,12 +358,12 @@ struct CreateSaverView: View {
                 .textSelection(.enabled)
                 .lineLimit(3)
             HStack(spacing: 8) {
-                Button("Reveal in Finder") {
+                Button(t("Reveal in Finder")) {
                     NSWorkspace.shared.activateFileViewerSelecting([url])
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.small)
-                Button("Copy Path") {
+                Button(t("Copy Path")) {
                     NSPasteboard.general.clearContents()
                     NSPasteboard.general.setString(url.path, forType: .string)
                 }
@@ -368,7 +387,7 @@ struct CreateSaverView: View {
                 .font(.subheadline.weight(.semibold))
                 .fixedSize(horizontal: false, vertical: true)
             if let details, !details.isEmpty {
-                DisclosureGroup("Technical details") {
+                DisclosureGroup(t("Technical details")) {
                     ScrollView {
                         Text(details)
                             .font(.caption.monospaced())
@@ -391,8 +410,8 @@ struct CreateSaverView: View {
 
     private func chooseVideo() {
         let panel = NSOpenPanel()
-        panel.title = "Choose a screen saver video"
-        panel.prompt = "Choose"
+        panel.title = t("Choose a screen saver video")
+        panel.prompt = t("Choose")
         panel.allowsMultipleSelection = false
         panel.canChooseDirectories = false
         panel.canChooseFiles = true
@@ -404,8 +423,8 @@ struct CreateSaverView: View {
 
     private func exportSaver() {
         let panel = NSSavePanel()
-        panel.title = "Export Screen Saver"
-        panel.prompt = "Export"
+        panel.title = t("Export Screen Saver")
+        panel.prompt = t("Export")
         panel.nameFieldStringValue = Exporter.safeFileName(workflow.saverName) + ".saver"
         panel.allowedContentTypes = [UTType(filenameExtension: "saver") ?? .bundle]
         panel.canCreateDirectories = true
@@ -413,6 +432,10 @@ struct CreateSaverView: View {
 
         guard panel.runModal() == .OK, let destination = panel.url else { return }
         workflow.startExport(to: destination)
+    }
+
+    private var localizedStatusMessage: String {
+        t(workflow.statusMessage)
     }
 
     private func installSaver() {

@@ -6,24 +6,28 @@ enum SaverContentMode: String, CaseIterable, Identifiable, Sendable {
 
     var id: String { rawValue }
 
-    var title: String {
-        switch self {
-        case .fill: "Fill"
-        case .fit: "Fit"
-        }
+    func localizedTitle(for language: AppLanguage) -> String {
+        L10n.text(rawValue == "fill" ? "Fill" : "Fit", language: language)
     }
 
-    var explanation: String {
+    func localizedExplanation(for language: AppLanguage) -> String {
         switch self {
-        case .fill: "Fills the display and crops the edges when needed."
-        case .fit: "Shows the complete frame with possible letterboxing."
+        case .fill:
+            L10n.text("Fills the display and crops the edges when needed.", language: language)
+        case .fit:
+            L10n.text("Shows the complete frame with possible letterboxing.", language: language)
         }
     }
 }
 
-struct AppearanceSettingsView: View {
-    @AppStorage("interfaceMotion") private var motionIntensityID = MotionIntensity.enhanced.rawValue
-    @AppStorage("interfaceAccent") private var accentColorID = "purple"
+struct SettingsPage: View {
+    @Binding var languageCode: String
+    @Binding var accentColorID: String
+    @Binding var motionIntensityID: String
+
+    private var language: AppLanguage {
+        AppLanguage(rawValue: languageCode) ?? .simplifiedChinese
+    }
 
     private var accentColor: Color {
         AccentColorOption.option(for: accentColorID).color
@@ -31,103 +35,169 @@ struct AppearanceSettingsView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                PageHeader(
-                    title: "Settings",
-                    subtitle: "Tune the appearance of Video Screen Saver Generator.",
-                    systemImage: "slider.horizontal.3",
-                    accentColor: accentColor
-                )
+            VStack(alignment: .leading, spacing: 10) {
+                Text(L10n.text("Settings", language: language))
+                    .font(.title2.bold())
+                    .versionedComponentAppear(
+                        profile: motionProfile,
+                        pageID: "settings",
+                        direction: .unchanged
+                    )
 
-                appearancePanel
-                    .softAppear()
-
-                behaviorPanel
-                    .softAppear(delay: 0.04)
-
-                diagnosticsPanel
-                    .softAppear(delay: 0.08)
+                settingsRows
+                    .versionedComponentAppear(
+                        profile: motionProfile,
+                        pageID: "settings",
+                        direction: .unchanged
+                    )
             }
-            .padding(24)
-            .frame(maxWidth: 760, alignment: .leading)
+            .frame(maxWidth: 860, alignment: .leading)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.bottom, 8)
         }
+        .scrollIndicators(.automatic)
+        .tint(accentColor)
     }
 
-    private var appearancePanel: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Label("Appearance", systemImage: "paintbrush.pointed")
-                .font(.headline)
-
-            SettingsRow("Accent Color") {
-                VStack(alignment: .leading, spacing: 8) {
-                    AccentColorPicker(selection: $accentColorID)
-                    Text("The accent is used for actions, selection, and preview states.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
-
-            Divider()
-
-            SettingsRow("Motion") {
-                VStack(alignment: .leading, spacing: 8) {
-                    Picker("Motion", selection: $motionIntensityID) {
-                        ForEach(MotionIntensity.allCases) { intensity in
-                            Text(intensity.title).tag(intensity.rawValue)
-                        }
-                    }
-                    .labelsHidden()
-                    .pickerStyle(.segmented)
-                    Text("Reduce Motion in System Settings always takes priority.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-            }
-        }
-        .padding(18)
-        .interactivePanel(accentColor: accentColor)
+    private var motionProfile: VersionedMotionProfile {
+        VersionedMotionProfile(
+            runtimeProfile: .current,
+            intensity: MotionIntensity(rawValue: motionIntensityID) ?? .enhanced
+        )
     }
 
-    private var behaviorPanel: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Label("Export behavior", systemImage: "shippingbox")
-                .font(.headline)
-            Text("Generated screen savers contain a copy of the selected video. The original file is never moved, transcoded, or modified.")
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-            HStack(spacing: 10) {
-                Image(systemName: "checkmark.shield")
-                    .foregroundStyle(accentColor)
-                Text("Universal 2 app and screen saver")
-                Spacer()
-            }
-            .font(.callout)
-            HStack(spacing: 10) {
-                Image(systemName: "lock.open")
-                    .foregroundStyle(accentColor)
-                Text("Generated bundles use local ad-hoc signing")
-                Spacer()
-            }
-            .font(.callout)
-        }
-        .padding(18)
-        .interactivePanel(accentColor: accentColor)
-    }
-
-    private var diagnosticsPanel: some View {
+    private var settingsRows: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Label("About", systemImage: "info.circle")
-                .font(.headline)
-            Text("Video Screen Saver Generator")
-                .font(.title3.weight(.semibold))
-            Text("A native macOS utility for turning local video into an installable legacy ScreenSaver bundle.")
+            settingsSection(L10n.text("General", language: language), index: 0) {
+                languageRow
+                motionRow
+                accentRow
+            }
+
+            settingsSection(L10n.text("Screen Saver", language: language), index: 1) {
+                defaultsRow
+                muteRow
+            }
+
+            settingsSection(L10n.text("Export", language: language), index: 2) {
+                exportSafetyRow
+                bundleRow
+            }
+
+            settingsSection(L10n.text("Diagnostics", language: language), index: 3) {
+                diagnosticsRow
+            }
+        }
+    }
+
+    private func settingsSection<Content: View>(_ title: String, index: Int, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 7) {
+            Text(title)
+                .font(.headline.weight(.semibold))
                 .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-            Text("If an export fails, expand the technical details on the Create page to copy the complete signing diagnostics.")
+
+            VStack(alignment: .leading, spacing: 8) {
+                content()
+            }
+            .settingsSolidCard(accentColor: accentColor)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .staggeredGroupAppear(index: index)
+    }
+
+    private var languageRow: some View {
+        SettingsRow(L10n.text("Language", language: language)) {
+            Picker("", selection: Binding(
+                get: { languageCode },
+                set: { languageCode = $0 }
+            )) {
+                ForEach(AppLanguage.allCases) { value in
+                    Text(value.title).tag(value.rawValue)
+                }
+            }
+            .labelsHidden()
+            .pickerStyle(.segmented)
+        }
+    }
+
+    private var motionRow: some View {
+        SettingsRow(L10n.text("Motion", language: language)) {
+            Picker("", selection: $motionIntensityID) {
+                ForEach(MotionIntensity.allCases) { intensity in
+                    Text(intensity.title(for: language)).tag(intensity.rawValue)
+                }
+            }
+            .labelsHidden()
+            .pickerStyle(.segmented)
+        }
+    }
+
+    private var accentRow: some View {
+        SettingsRow(L10n.text("Accent Color", language: language)) {
+            VStack(alignment: .leading, spacing: 6) {
+                AccentColorPicker(selection: $accentColorID, language: language)
+                Text(L10n.text("The accent is used for actions, selection, and preview states.", language: language))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+    }
+
+    private var defaultsRow: some View {
+        SettingsRow(L10n.text("Default content mode", language: language)) {
+            @AppStorage("defaultContentMode") var defaultContentModeID = SaverContentMode.fill.rawValue
+            Picker("", selection: $defaultContentModeID) {
+                ForEach(SaverContentMode.allCases) { mode in
+                    Text(mode.localizedTitle(for: language)).tag(mode.rawValue)
+                }
+            }
+            .labelsHidden()
+            .pickerStyle(.segmented)
+        }
+    }
+
+    private var muteRow: some View {
+        SettingsRow(L10n.text("Default mute", language: language)) {
+            @AppStorage("defaultMuted") var defaultMuted = true
+            Toggle(L10n.text("Mute screen saver audio", language: language), isOn: $defaultMuted)
+                .toggleStyle(.switch)
+        }
+    }
+
+    private var exportSafetyRow: some View {
+        SettingsRow(L10n.text("Source file safety", language: language)) {
+            Label(
+                L10n.text("The original video is read-only during export.", language: language),
+                systemImage: "checkmark.shield"
+            )
+            .foregroundStyle(.secondary)
+        }
+    }
+
+    private var bundleRow: some View {
+        SettingsRow(L10n.text("Bundle", language: language)) {
+            VStack(alignment: .leading, spacing: 5) {
+                Label(L10n.text("Universal 2 app and screen saver", language: language), systemImage: "cpu")
+                Label(L10n.text("Generated bundles use local ad-hoc signing", language: language), systemImage: "signature")
+            }
+            .foregroundStyle(.secondary)
+        }
+    }
+
+    private var diagnosticsRow: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            SidebarStatusRow(title: L10n.text("Application version", language: language)) {
+                Text("1.0.1").monospacedDigit()
+            }
+            SidebarStatusRow(title: L10n.text("Universal 2", language: language)) {
+                Text("arm64 + x86_64")
+            }
+            SidebarStatusRow(title: L10n.text("Local ad-hoc signature", language: language)) {
+                Text(L10n.text("Enabled", language: language))
+            }
+            Text(L10n.text("Settings apply immediately to the native shell.", language: language))
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
-        .padding(18)
-        .interactivePanel(accentColor: accentColor)
     }
 }

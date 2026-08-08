@@ -6,7 +6,12 @@ struct VideoPreviewView: View {
     let selectedVideo: URL?
     let isDropTargeted: Bool
     let accentColor: Color
+    let language: AppLanguage
     let chooseVideo: () -> Void
+
+    private func t(_ key: String) -> String {
+        L10n.text(key, language: language)
+    }
 
     var body: some View {
         ZStack {
@@ -22,13 +27,13 @@ struct VideoPreviewView: View {
                     Image(systemName: "play.rectangle.on.rectangle")
                         .font(.system(size: 42, weight: .medium))
                         .foregroundStyle(accentColor)
-                    Text("Drop a video here")
+                    Text(t("Drop a video here"))
                         .font(.headline)
                         .foregroundStyle(.white)
-                    Text("or choose an MP4, MOV, or M4V file")
+                    Text(t("or choose an MP4, MOV, or M4V file"))
                         .font(.callout)
                         .foregroundStyle(.white.opacity(0.64))
-                    Button("Choose Video…", action: chooseVideo)
+                    Button(t("Choose Video…"), action: chooseVideo)
                         .buttonStyle(.borderedProminent)
                         .controlSize(.small)
                 }
@@ -38,7 +43,7 @@ struct VideoPreviewView: View {
             if selectedVideo != nil {
                 VStack {
                     HStack {
-                        Label("Preview", systemImage: "play.fill")
+                        Label(t("Preview"), systemImage: "play.fill")
                             .font(.caption.weight(.semibold))
                             .padding(.horizontal, 9)
                             .padding(.vertical, 6)
@@ -64,7 +69,7 @@ struct VideoPreviewView: View {
         .shadow(color: .black.opacity(0.16), radius: 12, y: 6)
         .animation(.easeInOut(duration: 0.18), value: isDropTargeted)
         .accessibilityElement(children: .contain)
-        .accessibilityLabel("Video preview")
-        .accessibilityValue(selectedVideo?.lastPathComponent ?? "No video selected")
+        .accessibilityLabel(t("Video preview"))
+        .accessibilityValue(selectedVideo?.lastPathComponent ?? t("No video selected"))
     }
 }
