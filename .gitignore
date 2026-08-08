@@ -1,0 +1,14 @@
+.DS_Store
+.build/
+**/.build/
+.swiftpm/
+**/.swiftpm/
+DerivedData/
+dist/
+*.xcuserstate
+xcuserdata/
+.venv/
+.venv-validation/
+*.log
+Resources/AppIcon.iconset/
+macOS-Video-Screen-Saver-Generator-Codex-Handoff.zip
