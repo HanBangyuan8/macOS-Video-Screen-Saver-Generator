@@ -119,7 +119,6 @@ echo "== Create source archive =="
         -x 'dist/*' '*/dist/*' \
         -x 'Resources/AppIcon.iconset/*' 'Resources/AppIcon.iconset' \
         -x '.DS_Store' '*/.DS_Store' \
-        -x 'macOS-Video-Screen-Saver-Generator-Codex-Handoff.zip' \
         -x '*.log' '*/Logs/*' '*/Cache/*'
 )
 shasum -a 256 "$SOURCE_ARCHIVE" > "$SOURCE_ARCHIVE.sha256"
