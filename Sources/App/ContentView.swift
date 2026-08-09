@@ -1,5 +1,6 @@
 import SwiftUI
 
+@available(macOS 15.0, *)
 struct ContentView: View {
     @StateObject private var model = AppModel()
 
@@ -9,6 +10,7 @@ struct ContentView: View {
     }
 }
 
+@available(macOS 15.0, *)
 struct NativeModernContentView: View {
     @EnvironmentObject private var model: AppModel
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -111,10 +113,10 @@ struct NativeModernContentView: View {
                 }
             }
             .listStyle(.sidebar)
-            .navigationTitle(model.t("Video Screen Saver Generator"))
+            .navigationTitle("Video Screen Saver Generator")
             .navigationSplitViewColumnWidth(min: 248, ideal: 272, max: 330)
         } detail: {
-            GeometryReader { geometry in
+            GeometryReader { _ in
                 if selectedSidebarPage == "settings" {
                     SettingsPage()
                         .environmentObject(model)
@@ -146,7 +148,7 @@ struct NativeModernContentView: View {
                     .coordinateSpace(name: "detailScroll")
                 }
             }
-            .navigationTitle(model.t(selectedSidebarPage == "settings" ? "Settings" : "Create"))
+            .navigationTitle("Video Screen Saver Generator")
         }
         .frame(minWidth: 1100, minHeight: 760)
         .tint(model.accentColor)

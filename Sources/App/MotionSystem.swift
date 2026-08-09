@@ -81,11 +81,24 @@ struct AnyButtonStyle: ButtonStyle {
 
 @available(macOS 12.0, *)
 struct ControlButtonHoverModifier: ViewModifier {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var isHovered = false
     let accentColor: Color
 
     func body(content: Content) -> some View {
         content
             .contentShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+            .background {
+                RoundedRectangle(cornerRadius: 7, style: .continuous)
+                    .fill(accentColor.opacity(isHovered ? 0.08 : 0))
+            }
+            .overlay {
+                RoundedRectangle(cornerRadius: 7, style: .continuous)
+                    .strokeBorder(accentColor.opacity(isHovered ? 0.45 : 0), lineWidth: isHovered ? 1.3 : 1)
+            }
+            .scaleEffect(isHovered && !reduceMotion ? 1.025 : 1)
+            .animation(reduceMotion ? nil : MotionTokens.hover, value: isHovered)
+            .onHover { isHovered = $0 }
     }
 }
 
@@ -127,8 +140,14 @@ struct LegacyAppearModifier: ViewModifier {
 }
 
 struct LegacyInteractiveCardModifier: ViewModifier {
+    @State private var isHovered = false
+
     func body(content: Content) -> some View {
         content
+            .scaleEffect(isHovered ? 1.012 : 1)
+            .shadow(color: Color.black.opacity(isHovered ? 0.10 : 0.04), radius: isHovered ? 8 : 3, x: 0, y: isHovered ? 4 : 1)
+            .animation(MotionTokens.legacyHover, value: isHovered)
+            .onHover { isHovered = $0 }
     }
 }
 
@@ -221,12 +240,26 @@ extension View {
 
 @available(macOS 12.0, *)
 struct InteractivePanelModifier: ViewModifier {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var isHovered = false
     let cornerRadius: CGFloat
     let accentColor: Color
 
     func body(content: Content) -> some View {
         content
             .contentShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+            .background {
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                    .fill(accentColor.opacity(isHovered ? 0.045 : 0))
+            }
+            .overlay {
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                    .strokeBorder(accentColor.opacity(isHovered ? 0.36 : 0), lineWidth: isHovered ? 1.4 : 1)
+            }
+            .scaleEffect(isHovered ? 1.006 : 1)
+            .shadow(color: Color.black.opacity(isHovered ? 0.08 : 0), radius: isHovered ? 8 : 0, x: 0, y: isHovered ? 3 : 0)
+            .animation(reduceMotion ? nil : MotionTokens.hover, value: isHovered)
+            .onHover { isHovered = $0 }
     }
 }
 

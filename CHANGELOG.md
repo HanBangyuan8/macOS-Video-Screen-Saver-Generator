@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.0.4 - 2026-08-09
+
+Create layout and interaction polish.
+
+- Kept the Create page in a native left/right split and made the preview and settings panels share the same resolved height.
+- Applied the Latency-style panel frame after the shared height so the visible borders, hover area, scale, and shadow stay aligned.
+- Restored the Latency-style control and panel hover treatment while preserving the native macOS 15+ shell and fixed application title.
+- Updated the application and release defaults to version 1.0.4 (build 5).
+
 ## v1.0.3 - 2026-08-09
 
 Latency UI source duplication and shell refactor.

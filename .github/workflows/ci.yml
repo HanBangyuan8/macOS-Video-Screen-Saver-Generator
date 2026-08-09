@@ -19,7 +19,7 @@ jobs:
 
       - name: Build and run validation suite
         run: |
-          VIDEO_SCREEN_SAVER_VERSION=1.0.3 \
-          VIDEO_SCREEN_SAVER_BUILD_VERSION=4 \
+          VIDEO_SCREEN_SAVER_VERSION=1.0.4 \
+          VIDEO_SCREEN_SAVER_BUILD_VERSION=5 \
           VIDEO_SAVER_BUILD_OUTPUT=/tmp/video-screen-saver-generator-ci \
           ./build.command --no-open --non-interactive

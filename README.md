@@ -1,6 +1,6 @@
 # Video Screen Saver Generator
 
-![macOS](https://img.shields.io/badge/macOS-13%2B-blue?style=flat)
+![macOS](https://img.shields.io/badge/macOS-15%2B-blue?style=flat)
 ![Xcode](https://img.shields.io/badge/Xcode-15%2B-147EFB?style=flat)
 ![Swift](https://img.shields.io/badge/Swift-5.9%2B-orange?style=flat)
 ![GitHub release](https://img.shields.io/github/v/release/HanBangyuan8/macOS-Video-Screen-Saver-Generator?style=flat)
@@ -32,7 +32,7 @@ The screen saver remains a conservative legacy `ScreenSaverView` bundle implemen
 
 ## Requirements
 
-- macOS 13 or newer
+- macOS 15 or newer
 - Full Xcode with the macOS SDK and command-line tools
 - Apple Silicon or Intel Mac
 
@@ -49,8 +49,8 @@ Run the complete three-pass validation build:
 The default output is `~/Desktop/Video Screen Saver Generator Build/`. For CI or release automation, avoid opening Finder and the interactive pause:
 
 ```sh
-VIDEO_SCREEN_SAVER_VERSION=1.0.3 \
-VIDEO_SCREEN_SAVER_BUILD_VERSION=4 \
+VIDEO_SCREEN_SAVER_VERSION=1.0.4 \
+VIDEO_SCREEN_SAVER_BUILD_VERSION=5 \
 VIDEO_SAVER_BUILD_OUTPUT=/tmp/video-screen-saver-generator-build \
 ./build.command --no-open --non-interactive
 ```

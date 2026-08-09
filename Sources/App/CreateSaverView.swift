@@ -2,6 +2,14 @@ import AppKit
 import SwiftUI
 import UniformTypeIdentifiers
 
+private struct CreatePanelHeightPreferenceKey: PreferenceKey {
+    static let defaultValue: CGFloat = 0
+
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = max(value, nextValue())
+    }
+}
+
 @MainActor
 final class SaverWorkflowModel: ObservableObject {
     let preview = PreviewPlayerController()
@@ -131,6 +139,7 @@ struct CreateSaverView: View {
     @EnvironmentObject private var model: AppModel
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var isDropTargeted = false
+    @State private var panelHeight: CGFloat?
 
     private var accentColor: Color { model.accentColor }
     private var language: AppLanguage { model.language }
@@ -155,20 +164,19 @@ struct CreateSaverView: View {
                 )
                 .versionedComponentAppear(profile: motionProfile, pageID: "create-header", direction: navigationDirection)
 
-                ViewThatFits(in: .horizontal) {
-                    HStack(alignment: .top, spacing: 18) {
-                        previewPanel
-                            .frame(minWidth: 430)
-                        settingsPanel
-                            .frame(width: 330)
-                    }
-
-                    VStack(alignment: .leading, spacing: 18) {
-                        previewPanel
-                        settingsPanel
-                    }
+                HStack(alignment: .top, spacing: 18) {
+                    equalHeightPanel(previewPanel)
+                        .frame(minWidth: 0, maxWidth: .infinity)
+                        .interactivePanel(accentColor: accentColor)
+                    equalHeightPanel(settingsPanel)
+                        .frame(width: 330)
+                        .interactivePanel(accentColor: accentColor)
                 }
                 .versionedComponentAppear(profile: motionProfile, pageID: "create-panels", direction: navigationDirection)
+                .onPreferenceChange(CreatePanelHeightPreferenceKey.self) { height in
+                    guard height > 0, panelHeight != height else { return }
+                    panelHeight = height
+                }
             }
             .padding(24)
         }
@@ -181,6 +189,16 @@ struct CreateSaverView: View {
         .onDisappear {
             workflow.cleanup()
         }
+    }
+
+    private func equalHeightPanel<Content: View>(_ content: Content) -> some View {
+        content
+            .background {
+                GeometryReader { proxy in
+                    Color.clear.preference(key: CreatePanelHeightPreferenceKey.self, value: proxy.size.height)
+                }
+            }
+            .frame(height: panelHeight, alignment: .top)
     }
 
     private var previewPanel: some View {
@@ -239,7 +257,6 @@ struct CreateSaverView: View {
             }
         }
         .padding(18)
-        .interactivePanel(accentColor: accentColor)
     }
 
     private func metadataGrid(_ metadata: VideoMetadata) -> some View {
@@ -346,7 +363,6 @@ struct CreateSaverView: View {
             Spacer(minLength: 0)
         }
         .padding(18)
-        .interactivePanel(accentColor: accentColor)
     }
 
     private func successCard(_ url: URL) -> some View {
