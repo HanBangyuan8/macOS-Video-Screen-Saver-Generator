@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.0.3 - 2026-08-09
+
+Latency UI source duplication and shell refactor.
+
+- Duplicated the Latency-style `AppModel`, `NativeModernContentView`, native sidebar sections, per-page detail branches, `SettingsPage`/`SettingsPanel`, and model-driven `AccentColorPicker` structure into the app.
+- Connected the existing Create workflow to the shared app model for language, accent color, motion, locale, runtime profile, and export defaults.
+- Kept directional page transitions, versioned Motion optimization, and hover-independent visual styling intact after the structural refactor.
+- Updated the application and release defaults to version 1.0.3 (build 4).
+
 ## v1.0.2 - 2026-08-09
 
 Directional motion and visual consistency update.

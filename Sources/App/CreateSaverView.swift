@@ -126,20 +126,22 @@ final class SaverWorkflowModel: ObservableObject {
 
 struct CreateSaverView: View {
     @ObservedObject var workflow: SaverWorkflowModel
-    let accentColor: Color
-    let motionIntensity: MotionIntensity
-    let language: AppLanguage
     let navigationDirection: PageNavigationDirection
 
+    @EnvironmentObject private var model: AppModel
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var isDropTargeted = false
 
+    private var accentColor: Color { model.accentColor }
+    private var language: AppLanguage { model.language }
+    private var motionIntensity: MotionIntensity { model.motionIntensity }
+
     private var motionProfile: VersionedMotionProfile {
-        VersionedMotionProfile(runtimeProfile: .current, intensity: motionIntensity)
+        VersionedMotionProfile(runtimeProfile: model.runtimeProfile, intensity: motionIntensity)
     }
 
     private func t(_ key: String) -> String {
-        L10n.text(key, language: language)
+        model.t(key)
     }
 
     var body: some View {

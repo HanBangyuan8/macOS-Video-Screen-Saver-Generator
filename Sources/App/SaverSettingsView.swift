@@ -21,76 +21,64 @@ enum SaverContentMode: String, CaseIterable, Identifiable, Sendable {
 }
 
 struct SettingsPage: View {
-    @Binding var languageCode: String
-    @Binding var accentColorID: String
-    @Binding var motionIntensityID: String
+    @EnvironmentObject private var model: AppModel
 
-    private var language: AppLanguage {
-        AppLanguage(rawValue: languageCode) ?? .simplifiedChinese
-    }
-
-    private var accentColor: Color {
-        AccentColorOption.option(for: accentColorID).color
+    private var versionedMotionProfile: VersionedMotionProfile {
+        VersionedMotionProfile(runtimeProfile: model.runtimeProfile, intensity: model.motionIntensity)
     }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 10) {
-                Text(L10n.text("Settings", language: language))
-                    .font(.title2.bold())
-                    .versionedComponentAppear(
-                        profile: motionProfile,
-                        pageID: "settings",
-                        direction: .unchanged
-                    )
-
-                settingsRows
-                    .versionedComponentAppear(
-                        profile: motionProfile,
-                        pageID: "settings",
-                        direction: .unchanged
-                    )
-            }
-            .frame(maxWidth: 860, alignment: .leading)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.bottom, 8)
-        }
-        .scrollIndicators(.automatic)
-        .tint(accentColor)
-    }
-
-    private var motionProfile: VersionedMotionProfile {
-        VersionedMotionProfile(
-            runtimeProfile: .current,
-            intensity: MotionIntensity(rawValue: motionIntensityID) ?? .enhanced
-        )
-    }
-
-    private var settingsRows: some View {
         VStack(alignment: .leading, spacing: 10) {
-            settingsSection(L10n.text("General", language: language), index: 0) {
+            Text(model.t("Settings"))
+                .font(.title2.bold())
+                .versionedComponentAppear(profile: versionedMotionProfile, pageID: "settings", direction: .unchanged)
+
+            SettingsPanel(model: model)
+                .versionedComponentAppear(profile: versionedMotionProfile, pageID: "settings", direction: .unchanged)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+    }
+}
+
+struct SettingsPanel: View {
+    @ObservedObject var model: AppModel
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    private var settingsAnimation: Animation? {
+        reduceMotion ? nil : MotionTokens.soft
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            settingsSection(title: model.t("General"), index: 0) {
                 languageRow
                 motionRow
                 accentRow
             }
 
-            settingsSection(L10n.text("Screen Saver", language: language), index: 1) {
+            settingsSection(title: model.t("Screen Saver"), index: 1) {
                 defaultsRow
                 muteRow
             }
 
-            settingsSection(L10n.text("Export", language: language), index: 2) {
+            settingsSection(title: model.t("Export"), index: 2) {
                 exportSafetyRow
                 bundleRow
             }
 
-            settingsSection(L10n.text("Diagnostics", language: language), index: 3) {
+            settingsSection(title: model.t("Diagnostics"), index: 3) {
                 diagnosticsRow
             }
         }
+        .animation(settingsAnimation, value: model.languageCode)
+        .animation(settingsAnimation, value: model.accentColorID)
+        .animation(settingsAnimation, value: model.motionIntensityID)
+        .animation(settingsAnimation, value: model.defaultContentModeID)
+        .animation(settingsAnimation, value: model.defaultMuted)
+        .frame(maxWidth: .infinity, alignment: .topLeading)
     }
 
-    private func settingsSection<Content: View>(_ title: String, index: Int, @ViewBuilder content: () -> Content) -> some View {
+    private func settingsSection<Content: View>(title: String, index: Int, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 7) {
             Text(title)
                 .font(.headline.weight(.semibold))
@@ -99,20 +87,17 @@ struct SettingsPage: View {
             VStack(alignment: .leading, spacing: 8) {
                 content()
             }
-            .settingsSolidCard(accentColor: accentColor)
+            .settingsSolidCard(accentColor: model.accentColor)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .staggeredGroupAppear(index: index)
     }
 
     private var languageRow: some View {
-        SettingsRow(L10n.text("Language", language: language)) {
-            Picker("", selection: Binding(
-                get: { languageCode },
-                set: { languageCode = $0 }
-            )) {
-                ForEach(AppLanguage.allCases) { value in
-                    Text(value.title).tag(value.rawValue)
+        SettingsRow(title: model.t("Language")) {
+            Picker("", selection: $model.languageCode) {
+                ForEach(AppLanguage.allCases) { language in
+                    Text(language.title).tag(language.rawValue)
                 }
             }
             .labelsHidden()
@@ -121,10 +106,10 @@ struct SettingsPage: View {
     }
 
     private var motionRow: some View {
-        SettingsRow(L10n.text("Motion", language: language)) {
-            Picker("", selection: $motionIntensityID) {
+        SettingsRow(title: model.t("Motion")) {
+            Picker("", selection: $model.motionIntensityID) {
                 ForEach(MotionIntensity.allCases) { intensity in
-                    Text(intensity.title(for: language)).tag(intensity.rawValue)
+                    Text(intensity.title(for: model.language)).tag(intensity.rawValue)
                 }
             }
             .labelsHidden()
@@ -133,10 +118,10 @@ struct SettingsPage: View {
     }
 
     private var accentRow: some View {
-        SettingsRow(L10n.text("Accent Color", language: language)) {
+        SettingsRow(title: model.t("Accent Color")) {
             VStack(alignment: .leading, spacing: 6) {
-                AccentColorPicker(selection: $accentColorID, language: language)
-                Text(L10n.text("The accent is used for actions, selection, and preview states.", language: language))
+                AccentColorPicker(model: model)
+                Text(model.t("The accent is used for actions, selection, and preview states."))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -144,11 +129,10 @@ struct SettingsPage: View {
     }
 
     private var defaultsRow: some View {
-        SettingsRow(L10n.text("Default content mode", language: language)) {
-            @AppStorage("defaultContentMode") var defaultContentModeID = SaverContentMode.fill.rawValue
-            Picker("", selection: $defaultContentModeID) {
+        SettingsRow(title: model.t("Default content mode")) {
+            Picker("", selection: $model.defaultContentModeID) {
                 ForEach(SaverContentMode.allCases) { mode in
-                    Text(mode.localizedTitle(for: language)).tag(mode.rawValue)
+                    Text(mode.localizedTitle(for: model.language)).tag(mode.rawValue)
                 }
             }
             .labelsHidden()
@@ -157,17 +141,16 @@ struct SettingsPage: View {
     }
 
     private var muteRow: some View {
-        SettingsRow(L10n.text("Default mute", language: language)) {
-            @AppStorage("defaultMuted") var defaultMuted = true
-            Toggle(L10n.text("Mute screen saver audio", language: language), isOn: $defaultMuted)
+        SettingsRow(title: model.t("Default mute")) {
+            Toggle(model.t("Mute screen saver audio"), isOn: $model.defaultMuted)
                 .toggleStyle(.switch)
         }
     }
 
     private var exportSafetyRow: some View {
-        SettingsRow(L10n.text("Source file safety", language: language)) {
+        SettingsRow(title: model.t("Source file safety")) {
             Label(
-                L10n.text("The original video is read-only during export.", language: language),
+                model.t("The original video is read-only during export."),
                 systemImage: "checkmark.shield"
             )
             .foregroundStyle(.secondary)
@@ -175,10 +158,10 @@ struct SettingsPage: View {
     }
 
     private var bundleRow: some View {
-        SettingsRow(L10n.text("Bundle", language: language)) {
+        SettingsRow(title: model.t("Bundle")) {
             VStack(alignment: .leading, spacing: 5) {
-                Label(L10n.text("Universal 2 app and screen saver", language: language), systemImage: "cpu")
-                Label(L10n.text("Generated bundles use local ad-hoc signing", language: language), systemImage: "signature")
+                Label(model.t("Universal 2 app and screen saver"), systemImage: "cpu")
+                Label(model.t("Generated bundles use local ad-hoc signing"), systemImage: "signature")
             }
             .foregroundStyle(.secondary)
         }
@@ -186,16 +169,16 @@ struct SettingsPage: View {
 
     private var diagnosticsRow: some View {
         VStack(alignment: .leading, spacing: 8) {
-            SidebarStatusRow(title: L10n.text("Application version", language: language)) {
-                Text("1.0.2").monospacedDigit()
+            SidebarStatusRow(title: model.t("Application version")) {
+                Text("1.0.3").monospacedDigit()
             }
-            SidebarStatusRow(title: L10n.text("Universal 2", language: language)) {
+            SidebarStatusRow(title: model.t("Universal 2")) {
                 Text("arm64 + x86_64")
             }
-            SidebarStatusRow(title: L10n.text("Local ad-hoc signature", language: language)) {
-                Text(L10n.text("Enabled", language: language))
+            SidebarStatusRow(title: model.t("Local ad-hoc signature")) {
+                Text(model.t("Enabled"))
             }
-            Text(L10n.text("Settings apply immediately to the native shell.", language: language))
+            Text(model.t("Settings apply immediately to the native shell."))
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }

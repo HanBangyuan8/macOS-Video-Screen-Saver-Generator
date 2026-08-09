@@ -128,8 +128,7 @@ enum L10n {
 }
 
 struct AccentColorPicker: View {
-    @Binding var selection: String
-    let language: AppLanguage
+    @ObservedObject var model: AppModel
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var columns: [GridItem] {
@@ -141,14 +140,14 @@ struct AccentColorPicker: View {
             ForEach(AccentColorOption.all) { option in
                 Button {
                     withAnimation(reduceMotion ? nil : MotionTokens.color) {
-                        selection = option.id
+                        model.accentColorID = option.id
                     }
                 } label: {
                     Capsule(style: .continuous)
                         .fill(option.color)
                         .frame(height: 14)
                         .overlay {
-                            if selection == option.id {
+                            if model.accentColorID == option.id {
                                 Capsule(style: .continuous)
                                     .strokeBorder(.primary.opacity(0.9), lineWidth: 1.5)
                                     .overlay {
@@ -160,7 +159,7 @@ struct AccentColorPicker: View {
                         .frame(maxWidth: .infinity)
                         .frame(height: 20)
                         .contentShape(Rectangle())
-                        .accessibilityLabel(option.name(for: language))
+                        .accessibilityLabel(option.name(for: model.language))
                 }
                 .buttonStyle(LightweightPressButtonStyle())
                 .frame(maxWidth: .infinity)
@@ -174,7 +173,7 @@ struct SettingsRow<Content: View>: View {
     let title: String
     let content: Content
 
-    init(_ title: String, @ViewBuilder content: () -> Content) {
+    init(title: String, @ViewBuilder content: () -> Content) {
         self.title = title
         self.content = content()
     }
