@@ -30,6 +30,41 @@ clean_bundle_metadata() {
     fi
 }
 
+sign_bundle_with_retries() {
+    local bundle_path="$1"
+    local attempt
+    for attempt in 1 2 3 4 5; do
+        clean_bundle_metadata "$bundle_path"
+        if codesign --force --deep --sign - --timestamp=none "$bundle_path" >/dev/null 2>&1; then
+            clean_bundle_metadata "$bundle_path"
+            if codesign --verify --deep --strict "$bundle_path" >/dev/null 2>&1; then
+                return 0
+            fi
+        fi
+        sleep 1
+    done
+
+    clean_bundle_metadata "$bundle_path"
+    codesign --force --deep --sign - --timestamp=none "$bundle_path"
+    clean_bundle_metadata "$bundle_path"
+    codesign --verify --deep --strict "$bundle_path"
+}
+
+verify_bundle_with_retries() {
+    local bundle_path="$1"
+    local attempt
+    for attempt in 1 2 3 4 5; do
+        clean_bundle_metadata "$bundle_path"
+        if codesign --verify --deep --strict "$bundle_path" >/dev/null 2>&1; then
+            return 0
+        fi
+        sleep 1
+    done
+
+    clean_bundle_metadata "$bundle_path"
+    codesign --verify --deep --strict "$bundle_path"
+}
+
 assert_no_user_cache_payload() {
     local bundle_path="$1"
     if find "$bundle_path" \( \
@@ -81,10 +116,9 @@ SAVER_PATH="$APP_DIR/Contents/Resources/VideoScreenSaver.saver"
 
 clean_bundle_metadata "$APP_DIR"
 assert_no_user_cache_payload "$APP_DIR"
-codesign --force --deep --sign - --timestamp=none "$APP_DIR"
-clean_bundle_metadata "$APP_DIR"
+sign_bundle_with_retries "$APP_DIR"
 assert_no_user_cache_payload "$APP_DIR"
-codesign --verify --deep --strict "$APP_DIR"
+verify_bundle_with_retries "$APP_DIR"
 
 APP_ARCHS="$(lipo -archs "$APP_DIR/Contents/MacOS/$EXECUTABLE_NAME")"
 SAVER_ARCHS="$(lipo -archs "$SAVER_PATH/Contents/MacOS/VideoScreenSaver")"
@@ -97,7 +131,7 @@ rm -rf "$FINAL_APP_DIR"
 ditto --norsrc "$APP_DIR" "$FINAL_APP_DIR"
 clean_bundle_metadata "$FINAL_APP_DIR"
 assert_no_user_cache_payload "$FINAL_APP_DIR"
-codesign --verify --deep --strict "$FINAL_APP_DIR"
-clean_bundle_metadata "$FINAL_APP_DIR"
+sign_bundle_with_retries "$FINAL_APP_DIR"
+verify_bundle_with_retries "$FINAL_APP_DIR"
 
 echo "$FINAL_APP_DIR"
