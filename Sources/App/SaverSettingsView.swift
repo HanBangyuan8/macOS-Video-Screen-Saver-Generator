@@ -170,7 +170,7 @@ struct SettingsPanel: View {
     private var diagnosticsRow: some View {
         VStack(alignment: .leading, spacing: 8) {
             SidebarStatusRow(title: model.t("Application version")) {
-                Text("1.0.4").monospacedDigit()
+                Text("1.0.5").monospacedDigit()
             }
             SidebarStatusRow(title: model.t("Universal 2")) {
                 Text("arm64 + x86_64")

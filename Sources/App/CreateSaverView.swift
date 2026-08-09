@@ -193,6 +193,7 @@ struct CreateSaverView: View {
 
     private func equalHeightPanel<Content: View>(_ content: Content) -> some View {
         content
+            .fixedSize(horizontal: false, vertical: true)
             .background {
                 GeometryReader { proxy in
                     Color.clear.preference(key: CreatePanelHeightPreferenceKey.self, value: proxy.size.height)
@@ -360,7 +361,6 @@ struct CreateSaverView: View {
                 errorCard(summary: errorMessage, details: workflow.technicalDetails)
             }
 
-            Spacer(minLength: 0)
         }
         .padding(18)
     }

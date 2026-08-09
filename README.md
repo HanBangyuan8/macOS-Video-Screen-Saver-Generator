@@ -49,8 +49,8 @@ Run the complete three-pass validation build:
 The default output is `~/Desktop/Video Screen Saver Generator Build/`. For CI or release automation, avoid opening Finder and the interactive pause:
 
 ```sh
-VIDEO_SCREEN_SAVER_VERSION=1.0.4 \
-VIDEO_SCREEN_SAVER_BUILD_VERSION=5 \
+VIDEO_SCREEN_SAVER_VERSION=1.0.5 \
+VIDEO_SCREEN_SAVER_BUILD_VERSION=6 \
 VIDEO_SAVER_BUILD_OUTPUT=/tmp/video-screen-saver-generator-build \
 ./build.command --no-open --non-interactive
 ```

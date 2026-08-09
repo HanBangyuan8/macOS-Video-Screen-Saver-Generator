@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.0.5 - 2026-08-09
+
+Balanced Create panel sizing.
+
+- Measured the preview and settings panels at their intrinsic content heights and used the taller panel as the shared height.
+- Removed the settings-panel spacer that could incorrectly expand both visible boxes to the full window height.
+- Preserved the Latency-style panel frame, border, and hover behavior after the shared height is resolved.
+- Updated the application and release defaults to version 1.0.5 (build 6).
+
 ## v1.0.4 - 2026-08-09
 
 Create layout and interaction polish.
