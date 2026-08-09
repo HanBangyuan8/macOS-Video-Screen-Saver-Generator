@@ -2,7 +2,7 @@
 
 ## v1.0.5 - 2026-08-09
 
-Balanced Create panel sizing.
+Patch release.
 
 - Measured the preview and settings panels at their intrinsic content heights and used the taller panel as the shared height.
 - Removed the settings-panel spacer that could incorrectly expand both visible boxes to the full window height.
@@ -11,7 +11,7 @@ Balanced Create panel sizing.
 
 ## v1.0.4 - 2026-08-09
 
-Create layout and interaction polish.
+Patch release.
 
 - Kept the Create page in a native left/right split and made the preview and settings panels share the same resolved height.
 - Applied the Latency-style panel frame after the shared height so the visible borders, hover area, scale, and shadow stay aligned.
@@ -20,7 +20,7 @@ Create layout and interaction polish.
 
 ## v1.0.3 - 2026-08-09
 
-Latency UI source duplication and shell refactor.
+Patch release.
 
 - Duplicated the Latency-style `AppModel`, `NativeModernContentView`, native sidebar sections, per-page detail branches, `SettingsPage`/`SettingsPanel`, and model-driven `AccentColorPicker` structure into the app.
 - Connected the existing Create workflow to the shared app model for language, accent color, motion, locale, runtime profile, and export defaults.
@@ -29,7 +29,7 @@ Latency UI source duplication and shell refactor.
 
 ## v1.0.2 - 2026-08-09
 
-Directional motion and visual consistency update.
+Patch release.
 
 - Forced the Latency-style page transition pipeline to use the navigation direction for both the asymmetric transition and versioned page-settle motion.
 - Removed hover-dependent background, border, shadow, and scale changes so the app has the same visual appearance with or without a pointer over a control or panel.
@@ -38,7 +38,7 @@ Directional motion and visual consistency update.
 
 ## v1.0.1 - 2026-08-09
 
-UI and motion refresh.
+Patch release.
 
 - Rebuilt the SwiftUI shell around the native macOS `NavigationSplitView` top bar and sidebar pattern used by Latency Graph for ClashX Meta.
 - Added the same versioned vertical page-switch motion, startup motion, component reveals, press feedback, and runtime-aware optimization profile.
