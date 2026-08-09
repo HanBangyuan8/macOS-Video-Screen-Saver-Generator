@@ -123,7 +123,8 @@ MOUNT_POINT=""
 
 # Verification can re-materialize Finder metadata on a destination under a
 # quarantined workspace. Leave the final dist app clean after all verification.
-clean_release_bundle_metadata "$APP_PATH"
+verify_signature_after_cleanup "$APP_PATH" deep
+verify_signature_after_cleanup "$APP_PATH/Contents/Resources/VideoScreenSaver.saver" strict
 
 echo "== Generate release checksums =="
 APP_BASENAME="$(basename "$APP_PATH")"
